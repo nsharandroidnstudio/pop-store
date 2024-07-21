@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Products</title>
+    <style>
+        /* Add some basic styling */
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Manage Products</h1>
+    <h2>Add Product</h2>
+    <form id="addProductForm" enctype="multipart/form-data">
+        <input type="text" id="title" name="title" placeholder="Title" required>
+        <textarea id="description" name="description" placeholder="Description" required></textarea>
+        <input type="file" id="image" name="image" accept="image/*" required>
+        <input type="number" id="price" name="price" placeholder="Price" step="0.01" required>
+        <button type="submit">Add Product</button>
+    </form>
+
+    <h2>Remove Product</h2>
+    <form id="removeProductForm">
+        <input type="text" id="titleToRemove" name="titleToRemove" placeholder="Product Title" required>
+        <button type="submit">Remove Product</button>
+    </form>
+
+    <script>
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(document.getElementById('addProductForm'));
+
+            try {
+                const response = await fetch('/admin/products', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while adding the product.');
+            }
+        });
+
+        document.getElementById('removeProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titleToRemove = document.getElementById('titleToRemove').value;
+
+            try {
+                const response = await fetch(`/admin/products?title=${encodeURIComponent(titleToRemove)}`, {
+                    method: 'DELETE',
+                });
+
+                const data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while removing the product.');
+            }
+        });
+    </script>
+</body>
+</html>

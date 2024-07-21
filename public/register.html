@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <!-- Add Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        nav {
+            width: 100%;
+            background-color: #007bff;
+            padding: 30px 0; /* Increased padding to make the nav taller */
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
+            font-size: 1.2em;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #ffcc00;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        h1 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 10px 10px 40px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 10px;
+            top: 60%; /* Lowered the icon */
+            transform: translateY(-50%);
+            color: #007bff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #message {
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .message-success {
+            color: #28a745;
+        }
+
+        .message-error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="register.html">Register</a>
+        <a href="login.html">Login</a>
+    </nav>
+    <div class="container">
+        <h1>Register</h1>
+        <form id="registerForm">
+            <div class="input-group">
+                <label for="username">Username:</label>
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password:</label>
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit">Register</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageElement = document.getElementById('message');
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageElement.textContent = data.message;
+                    messageElement.className = 'message-success';
+                    // Show success message and redirect to login page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 1000);  // Redirect after 1 seconds
+                } else {
+                    messageElement.textContent = data.error || 'An error occurred';
+                    messageElement.className = 'message-error';
+                }
+            } catch (error) {
+                messageElement.textContent = 'An error occurred. Please try again.';
+                messageElement.className = 'message-error';
+            }
+        });
+    </script>
+</body>
+</html>
