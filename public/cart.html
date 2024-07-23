@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .nav { margin-bottom: 20px; }
+        .nav a { margin-right: 10px; text-decoration: none; color: #007bff; }
+        .nav a:hover { text-decoration: underline; }
+        h1 { text-align: center; margin-bottom: 20px; }
+        .cart { display: flex; flex-direction: column; gap: 20px; }
+        .cart-item { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; padding: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .cart-item img { width: 100px; height: 100px; object-fit: cover; border-radius: 5px; margin-right: 20px; }
+        .cart-item-details { flex-grow: 1; }
+        .cart-item-details h3 { margin: 0; }
+        .cart-item-details p { margin: 5px 0; }
+        .cart-item-details .price { font-weight: bold; }
+        .cart-item button { padding: 10px; background-color: #dc3545; color: white; border: none; cursor: pointer; display: flex; align-items: center; }
+        .cart-item button:hover { background-color: #c82333; }
+        .cart-item button svg { margin-right: 5px; }
+        .total { text-align: right; font-size: 1.2em; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/index.html">Home</a>
+            <a href="/store.html">Store</a>
+            <a href="/cart.html">Cart</a>
+            <a href="/logout">Logout</a>
+        </div>
+
+        <h1>Shopping Cart</h1>
+
+        <div id="cart" class="cart"></div>
+
+        <div id="total" class="total"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCartItems();
+        });
+
+        async function fetchCartItems() {
+            try {
+                const response = await fetch('/api/cart');
+                const cartItems = await response.json();
+                displayCartItems(cartItems);
+            } catch (error) {
+                console.error('Error fetching cart items:', error);
+            }
+        }
+
+        function displayCartItems(cartItems) {
+            const cartDiv = document.getElementById('cart');
+            const totalDiv = document.getElementById('total');
+            cartDiv.innerHTML = '';
+            let total = 0;
+
+            cartItems.forEach(item => {
+                total += item.price;
+                const cartItemDiv = document.createElement('div');
+                cartItemDiv.className = 'cart-item';
+                cartItemDiv.innerHTML = `
+                    <img src="/images/${item.image}" alt="${item.title}">
+                    <div class="cart-item-details">
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                        <div class="price">$${item.price.toFixed(2)}</div>
+                    </div>
+                    <button onclick="removeFromCart('${item._id}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-7zM4.118 4.5A1.5 1.5 0 0 0 5.5 3h5a1.5 1.5 0 0 0 1.382 1.5H12a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h.118z"/>
+                            <path fill-rule="evenodd" d="M1.5 1a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1H1.5zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1H0V2zm2.118 4H13.88a.5.5 0 0 1 .118.492l-1 5a.5.5 0 0 1-.492.508H3.492a.5.5 0 0 1-.492-.508l-1-5a.5.5 0 0 1 .118-.492z"/>
+                        </svg>
+                        Remove
+                    </button>
+                `;
+                cartDiv.appendChild(cartItemDiv);
+            });
+
+            totalDiv.textContent = `Total: $${total.toFixed(2)}`;
+        }
+
+        function removeFromCart(itemId) {
+            fetch(`/api/cart/${itemId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchCartItems();
+                } else {
+                    alert('Error removing item from cart');
+                }
+            })
+            .catch(error => console.error('Error removing from cart:', error));
+        }
+    </script>
+</body>
+</html>

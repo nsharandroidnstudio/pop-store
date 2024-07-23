@@ -6,10 +6,11 @@ const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const fs = require('fs');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const Product = require('./models/Product');  // Ensure Product model is required here
-
+const { getProducts, saveProduct, removeProduct } = require('./persist');
 const app = express();
 
 // Database connection
@@ -67,7 +68,7 @@ app.get('/store', (req, res) => {
 // Fetch all products
 app.get('/api/products', async (req, res) => {
     try {
-        const products = await Product.find();  // Fetch products from the database
+        const products = await getProducts();  // Fetch products from the database
         res.json(products);
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -75,11 +76,28 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
+// Load products from products.json
+function loadProducts() {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path.join(__dirname, 'data', 'products.json'), 'utf8', (err, data) => {
+            if (err) {
+                return reject(err);
+            }
+            try {
+                const products = JSON.parse(data);
+                resolve(products);
+            } catch (parseError) {
+                reject(parseError);
+            }
+        });
+    });
+}
+
 // Search products
 app.get('/api/products/search', async (req, res) => {
     const query = req.query.query.toLowerCase();
     try {
-        const products = await Product.find();
+        const products = await loadProducts();
         const results = products.filter(p =>
             p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
         );
@@ -108,6 +126,7 @@ app.post('/admin/products', async (req, res) => {
         const { title, description, price, imagePath } = req.body;
         const product = new Product({ title, description, picture: imagePath, price });
         await product.save();
+        
         res.status(201).json({ message: 'Product added successfully' });
     } catch (error) {
         console.error('Error adding product:', error);

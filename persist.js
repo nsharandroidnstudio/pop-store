@@ -44,12 +44,13 @@ async function ensureFileExists(filePath) {
         await fs.writeFile(filePath, '[]');
     }
 }
+
 // User-related functions
+
 // Save a new user to the users.json file
 async function saveUser(username, hashedPassword) {
     await ensureDirectoryExists(DATA_DIR);
     await ensureFileExists(USERS_FILE);
-
     let users = [];
     try {
         const data = await fs.readFile(USERS_FILE, 'utf8');
@@ -59,10 +60,10 @@ async function saveUser(username, hashedPassword) {
             throw error;
         }
     }
-
     users.push({ username, password: hashedPassword }); // Add new user
     await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2)); // Save updated users list
 }
+
 // Check if a user already exists in the users.json file
 async function userExists(username) {
     await ensureDirectoryExists(DATA_DIR);
@@ -79,6 +80,7 @@ async function userExists(username) {
         throw error;
     }
 }
+
 // Get a user by username from the users.json file
 async function getUserByUsername(username) {
     await ensureDirectoryExists(DATA_DIR);
@@ -97,6 +99,7 @@ async function getUserByUsername(username) {
 }
 
 // Product-related functions
+
 // Save a new product to both MongoDB and products.json
 async function saveProduct(title, description, price, image) {
     await ensureDirectoryExists(DATA_DIR);
@@ -112,7 +115,8 @@ async function saveProduct(title, description, price, image) {
         }
     }
 
-    products.push({ title, description, price, image }); // Add new product
+    // Convert price to number and add new product
+    products.push({ title, description, price: Number(price), image });
     await fs.writeFile(PRODUCTS_FILE, JSON.stringify(products, null, 2)); // Save updated products list
 }
 
@@ -131,6 +135,7 @@ async function getProducts() {
         throw error;
     }
 }
+
 // Remove a product by title from both MongoDB and products.json
 async function removeProduct(title) {
     await ensureDirectoryExists(DATA_DIR);
@@ -149,8 +154,8 @@ async function removeProduct(title) {
     // Filter out the product to be removed
     const updatedProducts = products.filter(product => product.title !== title);
     await fs.writeFile(PRODUCTS_FILE, JSON.stringify(updatedProducts, null, 2)); // Save updated products list
-
     return products.length !== updatedProducts.length; // Return true if a product was removed
 }
+
 // Export functions for use in other modules
 module.exports = { saveUser, userExists, getUserByUsername, saveProduct, getProducts, removeProduct };

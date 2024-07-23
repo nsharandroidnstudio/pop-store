@@ -1,28 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Store</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; }
-        .search { margin-bottom: 20px; }
-        .search input { width: calc(100% - 100px); padding: 10px; }
-        .search button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-        .search button:hover { background-color: #0056b3; }
-        .products { display: flex; flex-wrap: wrap; gap: 20px; }
-        .product { border: 1px solid #ddd; border-radius: 5px; padding: 10px; width: 30%; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; align-items: center; }
-        .product img { max-width: 100%; max-height: 200px; object-fit: cover; border-radius: 5px; }
-        .product h3 { margin: 10px 0; }
-        .product p { margin: 10px 0; text-align: center; }
-        .product .price { font-weight: bold; margin-bottom: 10px; }
-        .product button { padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; display: flex; align-items: center; }
-        .product button:hover { background-color: #218838; }
-        .product button svg { margin-right: 5px; }
-        .nav { margin-bottom: 20px; }
-        .nav a { margin-right: 10px; text-decoration: none; color: #007bff; }
-        .nav a:hover { text-decoration: underline; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .nav {
+            margin-bottom: 20px;
+        }
+        .nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .search {
+            margin-bottom: 20px;
+            display: flex;
+        }
+        .search input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+        }
+        .search button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 0 4px 4px 0;
+        }
+        .search button:hover {
+            background-color: #0056b3;
+        }
+        .products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .product {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .product img {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product h3 {
+            margin: 10px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .product p {
+            margin: 10px 0;
+            text-align: center;
+            color: #666;
+        }
+        .product .price {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .product button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+        }
+        .product button:hover {
+            background-color: #218838;
+        }
+        .product button svg {
+            margin-right: 5px;
+        }
+        @media (max-width: 768px) {
+            .product {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -40,7 +135,9 @@
             <button onclick="searchProducts()">Search</button>
         </div>
 
-        <div id="products" class="products"></div>
+        <div id="products" class="products">
+            <p id="loading" style="width: 100%; text-align: center;">Loading products...</p>
+        </div>
     </div>
 
     <script>
@@ -52,23 +149,34 @@
             try {
                 const response = await fetch('/api/products');
                 const products = await response.json();
+                console.log('Fetched products:', products); // Log fetched products
                 displayProducts(products);
             } catch (error) {
                 console.error('Error fetching products:', error);
+                document.getElementById('loading').textContent = 'Failed to load products.';
             }
         }
 
         function displayProducts(products) {
             const productsDiv = document.getElementById('products');
             productsDiv.innerHTML = '';
+            if (products.length === 0) {
+                productsDiv.innerHTML = '<p style="width: 100%; text-align: center;">No products found.</p>';
+                return;
+            }
             products.forEach(product => {
                 const productDiv = document.createElement('div');
                 productDiv.className = 'product';
+
+                // Convert price to number if it is a string
+                const price = !isNaN(product.price) ? parseFloat(product.price).toFixed(2) : 'N/A';
+                console.log('Product price:', price); // Log the product price
+
                 productDiv.innerHTML = `
                     <img src="/images/${product.image}" alt="${product.title}">
                     <h3>${product.title}</h3>
                     <p>${product.description}</p>
-                    <div class="price">$${product.price.toFixed(2)}</div>
+                    <div class="price">$${price}</div>
                     <button onclick="addToCart('${product._id}')">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
                             <path d="M0 1a1 1 0 0 1 1-1h1.28a.5.5 0 0 1 .479.364l.834 3.32L3.28 3H14.5a.5.5 0 0 1 .491.592l-1 5A.5.5 0 0 1 13.5 9H4.18l-.834 3.32A.5.5 0 0 1 3 13H1.5a.5.5 0 0 1-.491-.408L0 2.5V1zm1.28 1l.528 2.112L3 4h9.5l.812-4H2.28zM3 5h9.5a.5.5 0 0 1 .491.592L12.5 9H3.719l-.625-2.5A.5.5 0 0 1 3 5zM5 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
@@ -82,9 +190,21 @@
 
         function searchProducts() {
             const query = document.getElementById('searchInput').value;
-            fetch(`/api/products/search?query=${query}`)
-                .then(response => response.json())
-                .then(products => displayProducts(products))
+            const searchUrl = `/api/products/search?query=${encodeURIComponent(query)}`;
+            console.log('Search URL:', searchUrl); // Log the search URL
+
+            fetch(searchUrl)
+                .then(response => {
+                    console.log('Search response status:', response.status); // Log response status
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(products => {
+                    console.log('Search results:', products); // Log search results
+                    displayProducts(products);
+                })
                 .catch(error => console.error('Error searching products:', error));
         }
 
