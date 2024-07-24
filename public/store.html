@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-    
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -98,63 +96,67 @@
             color: #333;
         }
         .product button {
-            padding: 10px;
             background-color: #28a745;
             color: white;
             border: none;
+            padding: 10px;
+            border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            border-radius: 4px;
+            gap: 8px;
         }
         .product button:hover {
             background-color: #218838;
         }
-        .product button svg {
-            margin-right: 5px;
+        .icon-button {
+            border: none;
+            background: none;
+            color: #fff;
+            font-size: 1.2em;
+            cursor: pointer;
         }
-        @media (max-width: 768px) {
-            .product {
-                width: 100%;
-            }
+        .icon-button:hover {
+            color: #ddd;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="nav">
-            <a href="/index.html">Home</a>
-            <a href="/cart.html">Cart</a>
-            <a href="/logout">Logout</a>
+            <a href="/store">Store</a>
+            <a href="/cart">Cart</a>
+            <!-- Add other navigation links here -->
         </div>
-
         <h1>Store</h1>
-
         <div class="search">
-            <input type="text" id="searchInput" placeholder="Search products...">
+            <input type="text" id="search" placeholder="Search products...">
             <button onclick="searchProducts()">Search</button>
         </div>
-
         <div id="products" class="products">
-            <p id="loading" style="width: 100%; text-align: center;">Loading products...</p>
+            <!-- Products will be displayed here -->
         </div>
     </div>
-
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             fetchProducts();
         });
 
-        async function fetchProducts() {
-            try {
-                const response = await fetch('/api/products');
-                const products = await response.json();
-                console.log('Fetched products:', products); // Log fetched products
-                displayProducts(products);
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                document.getElementById('loading').textContent = 'Failed to load products.';
-            }
+        function fetchProducts() {
+            fetch('/api/products')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok.');
+                    }
+                    return response.json();
+                })
+                .then(products => {
+                    displayProducts(products);
+                })
+                .catch(error => {
+                    console.error('Error fetching products:', error);
+                    document.getElementById('products').innerHTML = '<p style="width: 100%; text-align: center;">Failed to load products.</p>';
+                });
         }
 
         function displayProducts(products) {
@@ -177,10 +179,8 @@
                     <h3>${product.title}</h3>
                     <p>${product.description}</p>
                     <div class="price">$${price}</div>
-                    <button onclick="addToCart('${product._id}')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
-                            <path d="M0 1a1 1 0 0 1 1-1h1.28a.5.5 0 0 1 .479.364l.834 3.32L3.28 3H14.5a.5.5 0 0 1 .491.592l-1 5A.5.5 0 0 1 13.5 9H4.18l-.834 3.32A.5.5 0 0 1 3 13H1.5a.5.5 0 0 1-.491-.408L0 2.5V1zm1.28 1l.528 2.112L3 4h9.5l.812-4H2.28zM3 5h9.5a.5.5 0 0 1 .491.592L12.5 9H3.719l-.625-2.5A.5.5 0 0 1 3 5zM5 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
-                        </svg>
+                    <button class="icon-button" onclick="addToCart('${product.title}')">
+                        <i class="fa fa-cart-plus"></i>
                         Add to Cart
                     </button>
                 `;
@@ -189,42 +189,46 @@
         }
 
         function searchProducts() {
-            const query = document.getElementById('searchInput').value;
-            const searchUrl = `/api/products/search?query=${encodeURIComponent(query)}`;
-            console.log('Search URL:', searchUrl); // Log the search URL
-
-            fetch(searchUrl)
+            const query = document.getElementById('search').value;
+            fetch(`/api/products/search?query=${encodeURIComponent(query)}`)
                 .then(response => {
-                    console.log('Search response status:', response.status); // Log response status
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error('Network response was not ok.');
                     }
                     return response.json();
                 })
                 .then(products => {
-                    console.log('Search results:', products); // Log search results
                     displayProducts(products);
                 })
-                .catch(error => console.error('Error searching products:', error));
+                .catch(error => {
+                    console.error('Error searching products:', error);
+                    document.getElementById('products').innerHTML = '<p style="width: 100%; text-align: center;">Failed to search products.</p>';
+                });
         }
 
-        function addToCart(productId) {
+        function addToCart(title) {
             fetch('/api/cart', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ productId })
+                body: JSON.stringify({ title: title }),
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Product added to cart!');
-                } else {
-                    alert('Error adding product to cart');
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
                 }
+                return response.json();
             })
-            .catch(error => console.error('Error adding to cart:', error));
+            .then(data => {
+                console.log('Product added to cart:', data);
+                alert('Product added to cart successfully');
+                // Update cart display or count here
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                alert(`Failed to add product to cart: ${error.error || error.message || 'Unknown error'}`);
+            });
         }
     </script>
 </body>

@@ -4,101 +4,302 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; }
-        .nav { margin-bottom: 20px; }
-        .nav a { margin-right: 10px; text-decoration: none; color: #007bff; }
-        .nav a:hover { text-decoration: underline; }
-        h1 { text-align: center; margin-bottom: 20px; }
-        .cart { display: flex; flex-direction: column; gap: 20px; }
-        .cart-item { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; padding: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .cart-item img { width: 100px; height: 100px; object-fit: cover; border-radius: 5px; margin-right: 20px; }
-        .cart-item-details { flex-grow: 1; }
-        .cart-item-details h3 { margin: 0; }
-        .cart-item-details p { margin: 5px 0; }
-        .cart-item-details .price { font-weight: bold; }
-        .cart-item button { padding: 10px; background-color: #dc3545; color: white; border: none; cursor: pointer; display: flex; align-items: center; }
-        .cart-item button:hover { background-color: #c82333; }
-        .cart-item button svg { margin-right: 5px; }
-        .total { text-align: right; font-size: 1.2em; font-weight: bold; margin-top: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .nav {
+            margin-bottom: 20px;
+        }
+        .nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .cart-section, .products-section {
+            flex: 1;
+            margin: 0 10px;
+        }
+        .cart-section {
+            max-width: 400px; /* Adjusted width for narrower cart section */
+        }
+        .products-section {
+            max-width: 600px;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .cart-items, .products {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .cart-item, .product {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .cart-item img, .product img {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .cart-item .details, .product .details {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+        .cart-item h3, .product h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .cart-item p, .product p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .cart-item .price, .product .price {
+            font-weight: bold;
+            color: #333;
+        }
+        .cart-item .quantity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        .cart-item .quantity label {
+            font-weight: bold;
+        }
+        .checkout-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkout-button:hover {
+            background-color: #0056b3;
+        }
+        .icon-button {
+            border: none;
+            background: none;
+            color: #333;
+            font-size: 1.5em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .icon-button:hover {
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="nav">
-            <a href="/index.html">Home</a>
-            <a href="/store.html">Store</a>
-            <a href="/cart.html">Cart</a>
-            <a href="/logout">Logout</a>
-        </div>
-
-        <h1>Shopping Cart</h1>
-
-        <div id="cart" class="cart"></div>
-
-        <div id="total" class="total"></div>
+    <div class="nav">
+        <a href="/store">Store</a>
+        <a href="/cart">Cart</a>
+        <!-- Add other navigation links here -->
     </div>
-
+    <div class="container">
+        <div class="cart-section">
+            <h1>Your Cart</h1>
+            <div id="cartItems" class="cart-items">
+                <p id="loading" style="width: 100%; text-align: center;">Loading cart...</p>
+            </div>
+            <button class="checkout-button" onclick="checkout()">
+                <i class="fa fa-credit-card"></i> Checkout
+            </button>
+        </div>
+        <div class="products-section">
+            <h2>Products</h2>
+            <div id="products" class="products">
+                <p id="products-loading" style="width: 100%; text-align: center;">Loading products...</p>
+            </div>
+        </div>
+    </div>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             fetchCartItems();
+            fetchProducts();
         });
 
         async function fetchCartItems() {
             try {
-                const response = await fetch('/api/cart');
-                const cartItems = await response.json();
-                displayCartItems(cartItems);
+                const response = await fetch('/api/cart/items');
+                const items = await response.json();
+                displayCartItems(items);
+                saveCartToLocalStorage(items); // Save to localStorage
             } catch (error) {
                 console.error('Error fetching cart items:', error);
+                document.getElementById('loading').textContent = 'Failed to load cart items.';
             }
         }
 
-        function displayCartItems(cartItems) {
-            const cartDiv = document.getElementById('cart');
-            const totalDiv = document.getElementById('total');
-            cartDiv.innerHTML = '';
-            let total = 0;
-
-            cartItems.forEach(item => {
-                total += item.price;
-                const cartItemDiv = document.createElement('div');
-                cartItemDiv.className = 'cart-item';
-                cartItemDiv.innerHTML = `
-                    <img src="/images/${item.image}" alt="${item.title}">
-                    <div class="cart-item-details">
-                        <h3>${item.title}</h3>
-                        <p>${item.description}</p>
-                        <div class="price">$${item.price.toFixed(2)}</div>
-                    </div>
-                    <button onclick="removeFromCart('${item._id}')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                            <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-7zM4.118 4.5A1.5 1.5 0 0 0 5.5 3h5a1.5 1.5 0 0 0 1.382 1.5H12a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h.118z"/>
-                            <path fill-rule="evenodd" d="M1.5 1a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1H1.5zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1H0V2zm2.118 4H13.88a.5.5 0 0 1 .118.492l-1 5a.5.5 0 0 1-.492.508H3.492a.5.5 0 0 1-.492-.508l-1-5a.5.5 0 0 1 .118-.492z"/>
-                        </svg>
-                        Remove
-                    </button>
-                `;
-                cartDiv.appendChild(cartItemDiv);
-            });
-
-            totalDiv.textContent = `Total: $${total.toFixed(2)}`;
+        function saveCartToLocalStorage(items) {
+            localStorage.setItem('cartItems', JSON.stringify(items));
         }
 
-        function removeFromCart(itemId) {
-            fetch(`/api/cart/${itemId}`, {
-                method: 'DELETE'
+        function displayCartItems(items) {
+            const cartItemsDiv = document.getElementById('cartItems');
+            cartItemsDiv.innerHTML = '';
+
+            const itemMap = items.reduce((acc, item) => {
+                if (acc[item.title]) {
+                    acc[item.title].quantity += 1;
+                } else {
+                    acc[item.title] = {
+                        ...item,
+                        quantity: 1
+                    };
+                }
+                return acc;
+            }, {});
+
+            const aggregatedItems = Object.values(itemMap);
+
+            if (aggregatedItems.length === 0) {
+                cartItemsDiv.innerHTML = '<p style="width: 100%; text-align: center;">Your cart is empty.</p>';
+                return;
+            }
+
+            aggregatedItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'cart-item';
+
+                itemDiv.innerHTML = `
+                    <img src="/images/${item.image}" alt="${item.title}">
+                    <div class="details">
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                        <div class="price">$${item.price}</div>
+                        <div class="quantity">
+                            <label>Quantity:</label>
+                            <span>${item.quantity}</span>
+                        </div>
+                    </div>
+                    <button class="icon-button" onclick="deleteFromCart('${item.title}')"><i class="fa fa-trash"></i></button>
+                `;
+                cartItemsDiv.appendChild(itemDiv);
+            });
+        }
+
+        function deleteFromCart(title) {
+            fetch('/api/cart/delete', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     fetchCartItems();
                 } else {
-                    alert('Error removing item from cart');
+                    alert('Error deleting product from cart');
                 }
             })
-            .catch(error => console.error('Error removing from cart:', error));
+            .catch(error => console.error('Error deleting from cart:', error));
+        }
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const products = await response.json();
+                displayProducts(products);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                document.getElementById('products-loading').textContent = 'Failed to load products.';
+            }
+        }
+
+        function displayProducts(products) {
+            const productsDiv = document.getElementById('products');
+            productsDiv.innerHTML = '';
+
+            if (products.length === 0) {
+                productsDiv.innerHTML = '<p style="width: 100%; text-align: center;">No products available.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product';
+
+                const price = !isNaN(product.price) ? parseFloat(product.price).toFixed(2) : 'N/A';
+
+                productDiv.innerHTML = `
+                    <img src="/images/${product.image}" alt="${product.title}">
+                    <div class="details">
+                        <h3>${product.title}</h3>
+                        <div class="price">$${price}</div>
+                    </div>
+                    <button class="icon-button" onclick="addToCart('${product.title}')"><i class="fa fa-cart-plus"></i></button>
+                `;
+                productsDiv.appendChild(productDiv);
+            });
+        }
+
+        function addToCart(title) {
+            fetch('/api/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title: title }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchCartItems();
+                } else {
+                    alert('Error adding product to cart');
+                }
+            })
+            .catch(error => console.error('Error adding to cart:', error));
+        }
+
+        function checkout() {
+            const cartItemsDiv = document.getElementById('cartItems');
+            if (cartItemsDiv.children.length === 0) {
+                alert('Your cart is empty. Add items to your cart before proceeding to checkout.');
+                return;
+            }
+            if (confirm('Are you sure you want to proceed to checkout?')) {
+                const cartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+                localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
+                window.location.href = '/checkout.html';
+            }
         }
     </script>
 </body>

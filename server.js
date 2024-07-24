@@ -6,10 +6,10 @@ const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const multer = require('multer');
-const fs = require('fs');
+const fs = require('fs').promises;
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
-const Product = require('./models/Product');  // Ensure Product model is required here
+const Product = require('./models/Product');
 const { getProducts, saveProduct, removeProduct } = require('./persist');
 const app = express();
 
@@ -20,7 +20,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',  // Replace with your frontend URL if different
+  origin: 'http://localhost:3000',
   credentials: true
 }));
 app.use(bodyParser.json());
@@ -30,10 +30,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, 'public/images'));  // Path to store uploaded images
+    cb(null, path.join(__dirname, 'public/images'));
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // Use original file extension
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
 
@@ -49,55 +49,54 @@ app.use((req, res, next) => {
 app.use('/api', authRoutes);
 app.use('/admin', adminRoutes);
 
-// Serve the register page
 app.get('/register', (req, res) => {
-    console.log('Serving register.html');
     res.sendFile(path.join(__dirname, 'public', 'register.html'));
 });
 
-// Serve the login page
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Serve the store page
 app.get('/store', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'store.html'));
+});
+
+app.get('/cart', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'cart.html'));
 });
 
 // Fetch all products
 app.get('/api/products', async (req, res) => {
     try {
-        const products = await getProducts();  // Fetch products from the database
+        const products = await getProducts();
+        console.log('Products fetched successfully:', products.length);
         res.json(products);
     } catch (error) {
         console.error('Error fetching products:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
 
 // Load products from products.json
-function loadProducts() {
-    return new Promise((resolve, reject) => {
-        fs.readFile(path.join(__dirname, 'data', 'products.json'), 'utf8', (err, data) => {
-            if (err) {
-                return reject(err);
-            }
-            try {
-                const products = JSON.parse(data);
-                resolve(products);
-            } catch (parseError) {
-                reject(parseError);
-            }
-        });
-    });
+async function loadProducts() {
+    try {
+        const filePath = path.join(__dirname, 'data', 'products.json');
+        console.log('Attempting to read file:', filePath);
+        const data = await fs.readFile(filePath, 'utf8');
+        const products = JSON.parse(data);
+        console.log('Products loaded successfully from file:', products.length);
+        return products;
+    } catch (error) {
+        console.error('Error loading products from file:', error);
+        return [];
+    }
 }
 
 // Search products
 app.get('/api/products/search', async (req, res) => {
     const query = req.query.query.toLowerCase();
     try {
-        const products = await loadProducts();
+        const products = await getProducts();
         const results = products.filter(p =>
             p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
         );
@@ -109,10 +108,47 @@ app.get('/api/products/search', async (req, res) => {
 });
 
 // Add product to cart
-app.post('/api/cart', (req, res) => {
-    const { productId } = req.body;
-    console.log(`Product ${productId} added to cart.`);
-    res.json({ success: true });
+const cart = []; // In-memory cart storage
+
+app.get('/api/cart/items', (req, res) => {
+    res.json(cart);
+});
+
+app.post('/api/cart', async (req, res) => {
+    const { title } = req.body;
+    if (!title) {
+        return res.status(400).json({ error: 'Product title is required' });
+    }
+    
+    try {
+        const products = await getProducts();
+        const product = products.find(p => p.title.toLowerCase() === title.toLowerCase());
+
+        if (product) {
+            cart.push(product);
+            res.json({ success: true, message: 'Product added to cart successfully' });
+        } else {
+            res.status(404).json({ error: 'Product not found' });
+        }
+    } catch (err) {
+        console.error('Error adding product to cart:', err);
+        res.status(500).json({ error: 'Internal server error', details: err.message });
+    }
+});
+
+app.delete('/api/cart/delete', (req, res) => {
+    const { title } = req.body;
+    if (!title) {
+        return res.status(400).json({ error: 'Product title is required' });
+    }
+
+    const index = cart.findIndex(item => item.title.toLowerCase() === title.toLowerCase());
+    if (index !== -1) {
+        cart.splice(index, 1);
+        res.json({ success: true, message: 'Product deleted from cart successfully' });
+    } else {
+        res.status(404).json({ error: 'Product not found in cart' });
+    }
 });
 
 // Image upload endpoint
@@ -126,7 +162,7 @@ app.post('/admin/products', async (req, res) => {
         const { title, description, price, imagePath } = req.body;
         const product = new Product({ title, description, picture: imagePath, price });
         await product.save();
-        
+        await saveProduct(product);
         res.status(201).json({ message: 'Product added successfully' });
     } catch (error) {
         console.error('Error adding product:', error);
@@ -137,7 +173,7 @@ app.post('/admin/products', async (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
-    res.status(500).send('Something broke!');
+    res.status(500).json({ error: 'Something broke!', details: err.message });
 });
 
 // Start the server
