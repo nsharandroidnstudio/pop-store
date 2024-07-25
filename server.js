@@ -12,6 +12,7 @@ const adminRoutes = require('./routes/admin');
 const Product = require('./models/Product');
 const { getProducts, saveProduct, removeProduct } = require('./persist');
 const app = express();
+const verifyToken = require('./middleware/auth');
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -114,7 +115,8 @@ app.get('/api/cart/items', (req, res) => {
     res.json(cart);
 });
 
-app.post('/api/cart', async (req, res) => {
+// Add product to cart
+app.post('/api/cart', verifyToken, async (req, res) => {
     const { title } = req.body;
     if (!title) {
         return res.status(400).json({ error: 'Product title is required' });
@@ -136,7 +138,8 @@ app.post('/api/cart', async (req, res) => {
     }
 });
 
-app.delete('/api/cart/delete', (req, res) => {
+// Delete product from cart
+app.delete('/api/cart/delete', verifyToken, (req, res) => {
     const { title } = req.body;
     if (!title) {
         return res.status(400).json({ error: 'Product title is required' });

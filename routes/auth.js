@@ -1,80 +1,84 @@
 // File: routes/auth.js
-
-// Import necessary modules
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt'); // For hashing and comparing passwords
-const jwt = require('jsonwebtoken'); // For generating and verifying JWT tokens
-const { saveUser, userExists, getUserByUsername } = require('../persist'); // Import user-related persistence functions
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { saveUser, userExists, getUserByUsername } = require('../persist');
+const verifyToken = require('../middleware/authMiddleware'); // Import the middleware
 
 // Registration route
 router.post('/register', async (req, res) => {
     try {
-        const { username, password } = req.body; // Extract username and password from request body
+        const { username, password } = req.body;
 
         // Basic validation
         if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' }); // Check if username and password are provided
+            return res.status(400).json({ error: 'Username and password are required' });
         }
 
         // Check if user already exists
         if (await userExists(username)) {
-            return res.status(400).json({ error: 'Username already exists' }); // Return error if username is already taken
+            return res.status(400).json({ error: 'Username already exists' });
         }
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10); // Hash the password with a salt round of 10
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         // Save the user
-        await saveUser(username, hashedPassword); // Save the new user to the data store
+        await saveUser(username, hashedPassword);
 
-        res.status(201).json({ message: 'User registered successfully' }); // Return success response
+        res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-        console.error('Registration error:', error); // Log error details
-        res.status(500).json({ error: 'Internal server error' }); // Return error response
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // Login route
 router.post('/login', async (req, res) => {
     try {
-        const { username, password, rememberMe } = req.body; // Extract username, password, and rememberMe from request body
+        const { username, password, rememberMe } = req.body;
 
         // Basic validation
         if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' }); // Check if username and password are provided
+            return res.status(400).json({ error: 'Username and password are required' });
         }
 
         // Get user from database
-        const user = await getUserByUsername(username); // Retrieve user data by username
+        const user = await getUserByUsername(username);
         if (!user) {
-            return res.status(401).json({ error: 'Invalid username or password' }); // Return error if user not found
+            return res.status(401).json({ error: 'Invalid username or password' });
         }
 
         // Check password
-        const isPasswordValid = await bcrypt.compare(password, user.password); // Compare provided password with hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Invalid username or password' }); // Return error if password is incorrect
+            return res.status(401).json({ error: 'Invalid username or password' });
         }
 
         // Create JWT token
         const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, {
-            expiresIn: rememberMe ? '10d' : '30m' // Set token expiration based on rememberMe flag
+            expiresIn: rememberMe ? '10d' : '30m'
         });
 
         // Set cookie
         res.cookie('token', token, {
-            httpOnly: true, // Prevent client-side access to the cookie
-            secure: process.env.NODE_ENV === 'production', // Set cookie as secure if in production
-            sameSite: 'strict', // Prevent CSRF attacks by ensuring cookie is sent with same-site requests
-            maxAge: rememberMe ? 10 * 24 * 60 * 60 * 1000 : 30 * 60 * 1000 // Set cookie expiration time based on rememberMe flag
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: rememberMe ? 10 * 24 * 60 * 60 * 1000 : 30 * 60 * 1000
         });
 
-        res.json({ message: 'Login successful' }); // Return success response
+        res.json({ message: 'Login successful' });
     } catch (error) {
-        console.error('Login error:', error); // Log error details
-        res.status(500).json({ error: 'Internal server error' }); // Return error response
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-module.exports = router; // Export router for use in the main application
+// Protected route to check authentication status
+router.get('/check', verifyToken, (req, res) => {
+    res.json({ isAuthenticated: true });
+});
+
+module.exports = router;

@@ -124,8 +124,11 @@
 <body>
     <div class="container">
         <div class="nav">
+            <a href="/index.html">Home</a>
             <a href="/store">Store</a>
-            <a href="/cart">Cart</a>
+            <a href="#" onclick="checkAuthAndRedirectToCart()">Cart</a>
+
+            <!-- <a href="/cart">Cart</a> -->
             <!-- Add other navigation links here -->
         </div>
         <h1>Store</h1>
@@ -141,7 +144,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             fetchProducts();
         });
-
         function fetchProducts() {
             fetch('/api/products')
                 .then(response => {
@@ -158,7 +160,6 @@
                     document.getElementById('products').innerHTML = '<p style="width: 100%; text-align: center;">Failed to load products.</p>';
                 });
         }
-
         function displayProducts(products) {
             const productsDiv = document.getElementById('products');
             productsDiv.innerHTML = '';
@@ -187,7 +188,6 @@
                 productsDiv.appendChild(productDiv);
             });
         }
-
         function searchProducts() {
             const query = document.getElementById('search').value;
             fetch(`/api/products/search?query=${encodeURIComponent(query)}`)
@@ -226,10 +226,43 @@
                 // Update cart display or count here
             })
             .catch(error => {
+                
                 console.error('Error adding to cart:', error);
-                alert(`Failed to add product to cart: ${error.error || error.message || 'Unknown error'}`);
+                alert('You must login to buy products');
+                window.location.href = 'login.html';
+                // alert(`You must login to buy products 17 ${error.error || error.message || 'Unknown error'}`);
             });
         }
+        function checkAuthAndRedirectToCart() {
+            fetch('/api/check', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include' // Ensure cookies are included in the request
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.isAuthenticated) {
+                    window.location.href = '/cart'; // Redirect to the cart page if authenticated
+                } else {
+                    alert('You must login to view the cart');
+                    window.location.href = 'login.html'; // Redirect to the login page if not authenticated
+                }
+            })
+            .catch(error => {
+                console.error('Error checking authentication:', error);
+                alert('You must login to view the cart');
+                window.location.href = 'login.html';
+            });
+        }
+
+
     </script>
 </body>
 </html>
