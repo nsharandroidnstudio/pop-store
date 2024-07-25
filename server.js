@@ -108,15 +108,22 @@ app.get('/api/products/search', async (req, res) => {
     }
 });
 
-// Add product to cart
-const cart = []; // In-memory cart storage
+// User-specific carts
+const userCarts = new Map();
 
-app.get('/api/cart/items', (req, res) => {
-    res.json(cart);
+// Get cart items
+// Get cart items
+app.get('/api/cart/items', verifyToken, (req, res) => {
+    const userId = req.username; // Changed from req.user.id to req.username
+    const userCart = userCarts.get(userId) || [];
+    res.json(userCart);
 });
 
 // Add product to cart
 app.post('/api/cart', verifyToken, async (req, res) => {
+    console.log("pkkkkkkk");
+    console.log(req.username);
+    const userId = req.username;
     const { title } = req.body;
     if (!title) {
         return res.status(400).json({ error: 'Product title is required' });
@@ -127,7 +134,11 @@ app.post('/api/cart', verifyToken, async (req, res) => {
         const product = products.find(p => p.title.toLowerCase() === title.toLowerCase());
 
         if (product) {
-            cart.push(product);
+            if (!userCarts.has(userId)) {
+                userCarts.set(userId, []);
+            }
+            userCarts.get(userId).push(product);
+            console.log(userCarts)
             res.json({ success: true, message: 'Product added to cart successfully' });
         } else {
             res.status(404).json({ error: 'Product not found' });
@@ -138,16 +149,17 @@ app.post('/api/cart', verifyToken, async (req, res) => {
     }
 });
 
-// Delete product from cart
 app.delete('/api/cart/delete', verifyToken, (req, res) => {
+    const userId = req.username; // Changed from req.user.id to req.username
     const { title } = req.body;
     if (!title) {
         return res.status(400).json({ error: 'Product title is required' });
     }
 
-    const index = cart.findIndex(item => item.title.toLowerCase() === title.toLowerCase());
+    const userCart = userCarts.get(userId) || [];
+    const index = userCart.findIndex(item => item.title.toLowerCase() === title.toLowerCase());
     if (index !== -1) {
-        cart.splice(index, 1);
+        userCart.splice(index, 1);
         res.json({ success: true, message: 'Product deleted from cart successfully' });
     } else {
         res.status(404).json({ error: 'Product not found in cart' });

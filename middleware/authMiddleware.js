@@ -6,7 +6,7 @@ function verifyToken(req, res, next) {
     const token = req.cookies.token || req.headers['authorization'];
     if (!token) {
        
-        return res.status(403).json({ error: 'No token provided, authorization denied 17' });
+        return res.status(403).json({ error: 'No token provided, authorization denied' });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
