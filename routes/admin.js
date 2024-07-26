@@ -9,13 +9,28 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer'); // Middleware for handling file uploads
 const path = require('path');
-const fs = require('fs'); // File system module for file operations
+const fs = require('fs').promises; // File system module for file operations with promises
 const Product = require('../models/Product'); // Import Product model for MongoDB operations
 const { saveProduct, removeProduct, getProducts } = require('../persist'); // Import functions for file-based data persistence
 
+// Path to the products file
+const productsFilePath = path.join(__dirname, '../data/products.json');
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
+    destination: async (req, file, cb) => {
+        const { title } = req.body; // Extract product title from request body
+
+        // Read the products file
+        const productsData = await fs.readFile(productsFilePath, 'utf8');
+        const products = JSON.parse(productsData);
+
+        // Check if the product with the same title already exists
+        const existingProduct = products.find(product => product.title === title);
+        if (existingProduct) {
+            return cb(new Error('Product with this title already exists'), false); // Prevent file upload
+        }
+
         cb(null, 'public/images/'); // Define the destination folder for uploaded images
     },
     filename: (req, file, cb) => {
@@ -23,28 +38,49 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + ext); // Create a unique file name using the current timestamp
     }
 });
-const upload = multer({ storage: storage }); // Initialize multer with the defined storage configuration
+const upload = multer({ storage: storage }).single('image'); // Initialize multer with the defined storage configuration
 
 // Route to add a new product with an image upload
-router.post('/products', upload.single('image'), async (req, res) => {
-    try {
-        const { title, description, price } = req.body; // Extract product details from request body
-        const image = req.file ? req.file.filename : ''; // Get the filename of the uploaded image, if any
+router.post('/products', async (req, res) => {
+    upload(req, res, async function (err) {
+        if (err) {
+            return res.status(400).json({ error: err.message }); // Send error response if multer throws an error
+        }
 
-        // Save product to MongoDB
-        const product = new Product({ title, description, price, image });
-        await product.save();
+        try {
+            const { title, description, price } = req.body; // Extract product details from request body
+            const image = req.file ? req.file.filename : ''; // Get the filename of the uploaded image, if any
 
-        // Save product to products.json file
-        await saveProduct(title, description, price, image);
+            // Read the products file
+            const productsData = await fs.readFile(productsFilePath, 'utf8');
+            const products = JSON.parse(productsData);
 
-        res.status(201).json({ message: 'Product added successfully' }); // Send success response
-    } catch (error) {
-        console.error('Error adding product:', error); // Log error details
-        res.status(500).json({ error: 'Internal server error' }); // Send error response
-    }
+            // Check if the product with the same title already exists
+            const existingProduct = products.find(product => product.title === title);
+            if (existingProduct) {
+                // If the product exists, delete the uploaded image
+                if (image) {
+                    const imagePath = path.join('public/images', image); // Construct the path to the image file
+                    await fs.unlink(imagePath);
+                }
+                return res.status(400).json({ error: 'Product with this title already exists' });
+            }
+
+            // Create a new product instance for MongoDB
+            const product = new Product({ title, description, price, image });
+            await product.save();
+
+            // Save product to products.json file
+            products.push({ title, description, price, image });
+            await fs.writeFile(productsFilePath, JSON.stringify(products, null, 2));
+
+            res.status(201).json({ message: 'Product added successfully' }); // Send success response
+        } catch (error) {
+            console.error('Error adding product:', error); // Log error details
+            res.status(500).json({ error: 'Internal server error' }); // Send error response
+        }
+    });
 });
-
 // Route to remove a product by title
 router.delete('/products', async (req, res) => {
     try {
@@ -62,19 +98,15 @@ router.delete('/products', async (req, res) => {
         await Product.deleteOne({ title });
 
         // Remove product from products.json file
-        const productRemoved = await removeProduct(title);
-        if (!productRemoved) {
-            console.error('Error removing product from JSON file'); // Log if there was an issue removing from the JSON file
-        }
+        const productsData = await fs.readFile(productsFilePath, 'utf8');
+        const products = JSON.parse(productsData);
+        const updatedProducts = products.filter(product => product.title !== title);
+        await fs.writeFile(productsFilePath, JSON.stringify(updatedProducts, null, 2));
 
         // Delete the image file from the server, if it exists
         if (product.image) {
             const imagePath = path.join('public/images', product.image); // Construct the path to the image file
-            fs.unlink(imagePath, (err) => {
-                if (err) {
-                    console.error('Error deleting image:', err); // Log error if image deletion fails
-                }
-            });
+            await fs.unlink(imagePath);
         }
 
         res.status(200).json({ message: 'Product removed successfully' }); // Send success response
@@ -94,4 +126,5 @@ router.get('/products', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' }); // Send error response
     }
 });
+
 module.exports = router; // Export router for use in the main application

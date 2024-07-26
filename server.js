@@ -110,8 +110,6 @@ app.get('/api/products/search', async (req, res) => {
 
 // User-specific carts
 const userCarts = new Map();
-
-// Get cart items
 // Get cart items
 app.get('/api/cart/items', verifyToken, (req, res) => {
     const userId = req.username; // Changed from req.user.id to req.username
@@ -121,8 +119,6 @@ app.get('/api/cart/items', verifyToken, (req, res) => {
 
 // Add product to cart
 app.post('/api/cart', verifyToken, async (req, res) => {
-    console.log("pkkkkkkk");
-    console.log(req.username);
     const userId = req.username;
     const { title } = req.body;
     if (!title) {
@@ -171,19 +167,30 @@ app.post('/admin/products/upload', upload.single('image'), (req, res) => {
     res.json({ message: 'Image uploaded successfully', imagePath: `/images/${req.file.filename}` });
 });
 
-// Add a new product
-app.post('/admin/products', async (req, res) => {
-    try {
-        const { title, description, price, imagePath } = req.body;
-        const product = new Product({ title, description, picture: imagePath, price });
-        await product.save();
-        await saveProduct(product);
-        res.status(201).json({ message: 'Product added successfully' });
-    } catch (error) {
-        console.error('Error adding product:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
+// // Add a new product
+// app.post('/admin/products', async (req, res) => {
+//     try {
+//         console.log("products")
+
+//         // const { title, description, price, imagePath } = req.body;
+//         // const productsData = await fs.readFile('data\products.json', 'utf8');
+//         // const products = JSON.parse(productsData);
+//         // console.log(products)
+//         // const existingProduct = products.find(product => product.title === title);
+//         // if (existingProduct) {
+//         //     return res.status(400).json({ error: 'Product with this title already exists' });
+//         // }
+
+
+//         // const product = new Product({ title, description, picture: imagePath, price });
+//         // await product.save();
+//         // await saveProduct(product);
+//         // res.status(201).json({ message: 'Product added successfully' });
+//     } catch (error) {
+//         console.error('Error adding product:', error);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
