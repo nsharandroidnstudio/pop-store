@@ -10,7 +10,7 @@ const fs = require('fs').promises;
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const Product = require('./models/Product');
-const { getProducts, saveProduct, removeProduct } = require('./persist');
+const { getProducts} = require('./persist');
 const app = express();
 const verifyToken = require('./middleware/auth');
 
@@ -161,36 +161,6 @@ app.delete('/api/cart/delete', verifyToken, (req, res) => {
         res.status(404).json({ error: 'Product not found in cart' });
     }
 });
-
-// Image upload endpoint
-app.post('/admin/products/upload', upload.single('image'), (req, res) => {
-    res.json({ message: 'Image uploaded successfully', imagePath: `/images/${req.file.filename}` });
-});
-
-// // Add a new product
-// app.post('/admin/products', async (req, res) => {
-//     try {
-//         console.log("products")
-
-//         // const { title, description, price, imagePath } = req.body;
-//         // const productsData = await fs.readFile('data\products.json', 'utf8');
-//         // const products = JSON.parse(productsData);
-//         // console.log(products)
-//         // const existingProduct = products.find(product => product.title === title);
-//         // if (existingProduct) {
-//         //     return res.status(400).json({ error: 'Product with this title already exists' });
-//         // }
-
-
-//         // const product = new Product({ title, description, picture: imagePath, price });
-//         // await product.save();
-//         // await saveProduct(product);
-//         // res.status(201).json({ message: 'Product added successfully' });
-//     } catch (error) {
-//         console.error('Error adding product:', error);
-//         res.status(500).json({ error: 'Internal server error' });
-//     }
-// });
 
 // Error handling middleware
 app.use((err, req, res, next) => {

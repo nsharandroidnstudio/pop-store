@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart</title>
-    <link rel="icon" href="/images/logo.png" type="image/png"> <!-- Add this line for the favicon -->
+    <link rel="icon" href="/images/logo.png" type="image/png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -31,6 +31,11 @@
             margin-right: 10px;
             text-decoration: none;
             color: #007bff;
+            display: inline-flex;
+            align-items: center;
+        }
+        .nav a i {
+            margin-right: 5px;
         }
         .nav a:hover {
             text-decoration: underline;
@@ -40,7 +45,7 @@
             margin: 0 10px;
         }
         .cart-section {
-            max-width: 400px; /* Adjusted width for narrower cart section */
+            max-width: 400px;
         }
         .products-section {
             max-width: 600px;
@@ -128,8 +133,9 @@
 </head>
 <body>
     <div class="nav">
-        <a href="/store">Store</a>
-        <a href="/cart">Cart</a>
+        <a href="/index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="/store"><i class="fas fa-store"></i> Store</a>
+        <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
         <!-- Add other navigation links here -->
     </div>
     <div class="container">
