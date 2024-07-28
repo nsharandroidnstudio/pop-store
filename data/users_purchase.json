@@ -48,20 +48,6 @@
         "image": "1721647168953.jpg"
       }
     ]
-  },
-  {
-    "username": "d",
-    "purchase": [
-      {
-        "title": "Harley Quinn",
-        "description": "Dc character",
-        "price": "10",
-        "image": "1721647168953.jpg"
-      }
-    ]
-  },
-  {
-    "username": "d",
-    "purchase": []
   }
+  
 ]

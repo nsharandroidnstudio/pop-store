@@ -15,19 +15,32 @@
             --border-color: #bdc3c7;
         }
 
-
         body {
-
-
-            
-
-
-
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
             background-color: var(--background-color);
             color: var(--text-color);
+        }
+
+        .nav {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #007bff;
+            display: flex;
+            align-items: center;
+            font-size: 1.1em;
+        }
+        .nav a i {
+            margin-right: 5px;
+        }
+        .nav a:hover {
+            text-decoration: underline;
         }
 
         .container {
@@ -143,10 +156,8 @@
         <a href="/index.html"><i class="fas fa-home"></i> Home</a>
         <a href="/store"><i class="fas fa-store"></i> Store</a>
         <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
-        <!-- Add other navigation links here -->
+        <a href="/login"><i class="fas fa-user"></i> Login</a>
     </div>
-
-
 
     <div class="container">
         <h1><i class="fas fa-shopping-cart icon"></i> Checkout</h1>
@@ -191,113 +202,6 @@
             </form>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCheckoutItems();
-
-            const paymentForm = document.getElementById('paymentForm');
-            paymentForm.addEventListener('submit', function(event) {
-                event.preventDefault(); // Prevent default form submission
-
-                console.log('Form submitted'); // Log form submission
-
-                // Get checkout items from local storage
-                const checkoutItems = JSON.parse(localStorage.getItem('checkoutItems') || '[]');
-                console.log('Checkout items:', checkoutItems); // Debugging
-
-                // Fetch authenticated user details
-                fetch('/api/check', {
-                    method: 'GET',
-                    credentials: 'include'
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Please login again.');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Authenticated user:', data.username);
-
-                    // Send purchase data to server
-                    fetch('/api/purchase', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ username: data.username, purchase: checkoutItems })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Response data:', data); // Debugging
-                        if (data.error) {
-                            throw new Error(data.error);
-                        }
-                        alert('Purchase successful');
-                        clearCart(); // Assume you have a function to clear the cart
-                    })
-                    .catch(error => {
-                        console.error('Error during purchase:', error); // Debugging
-                        alert('Purchase failed, please login again. ' );
-                    });
-                })
-                .catch(error => {
-                    console.error('Error checking authentication:', error);
-                    alert('Authentication failed: ' + error.message);
-                });
-            });
-        });
-
-        function loadCheckoutItems() {
-            const orderItemsDiv = document.getElementById('orderItems');
-            const totalPriceDiv = document.getElementById('totalPrice');
-            const checkoutItems = JSON.parse(localStorage.getItem('checkoutItems') || '[]');
-            console.log('Loading checkout items:', checkoutItems); // Debugging
-
-            let total = 0;
-            const consolidatedItems = {};
-
-            if (checkoutItems.length === 0) {
-                orderItemsDiv.innerHTML = '<tr><td colspan="4" style="text-align: center;">Your order is empty.</td></tr>';
-                return;
-            }
-
-            // Consolidate items
-            checkoutItems.forEach(item => {
-                if (consolidatedItems[item.title]) {
-                    consolidatedItems[item.title].quantity += 1;
-                } else {
-                    consolidatedItems[item.title] = {
-                        ...item,
-                        quantity: 1
-                    };
-                }
-            });
-
-            Object.values(consolidatedItems).forEach(item => {
-                const price = parseFloat(item.price);
-                const quantity = item.quantity;
-                const totalItemPrice = price * quantity;
-                total += totalItemPrice;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><i class="fas fa-box product-icon"></i> ${item.title}</td>
-                    <td>$${price.toFixed(2)}</td>
-                    <td>${quantity}</td>
-                    <td>$${totalItemPrice.toFixed(2)}</td>
-                `;
-                orderItemsDiv.appendChild(row);
-            });
-
-            totalPriceDiv.textContent = `$${total.toFixed(2)}`;
-        }
-
-        function clearCart() {
-            localStorage.removeItem('checkoutItems');
-            document.getElementById('orderItems').innerHTML = '<tr><td colspan="4" style="text-align: center;">Your order is empty.</td></tr>';
-            document.getElementById('totalPrice').textContent = '$0.00';
-        }
-    </script>
+    <script src="js/checkout.js"></script>
 </body>
 </html>

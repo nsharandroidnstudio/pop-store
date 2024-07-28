@@ -20,11 +20,30 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.token) {
                 // Store token in localStorage
                 localStorage.setItem('token', data.token);
-                
                 document.cookie = `token=${data.token}; path=/; max-age=${rememberMe ? 864000 : 1800}; SameSite=Strict`;
-                
-                alert('Login successful!');
-                window.location.href = 'store.html'; // Redirect to store page
+
+                // Clear user's cart after login
+                fetch('/api/cart/clear', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${data.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                })
+                .then(cartResponse => cartResponse.json())
+                .then(cartData => {
+                    if (cartData.success) {
+                        alert('Login successful!');
+                        window.location.href = 'store.html'; // Redirect to store page
+                    } else {
+                        alert('Login successful');
+                    }
+                })
+                .catch(cartError => {
+                    console.error('Error clearing cart:', cartError);
+                    alert('Login successful');
+                });
             } else {
                 alert('Login failed: ' + (data.error || 'Unknown error'));
             }

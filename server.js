@@ -148,7 +148,6 @@ app.delete('/api/cart/delete', verifyToken, (req, res) => {
     }
 });
 
-
 const purchasesRouter = require('./routes/purchases');
 app.use('/api/purchase', purchasesRouter);
 
@@ -156,6 +155,16 @@ app.use('/api/purchase', purchasesRouter);
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     res.status(500).json({ error: 'Something broke!', details: err.message });
+});
+
+
+
+app.post('/api/cart/clear', verifyToken, (req, res) => {
+    const userId = req.username; // Changed from req.user.id to req.username
+    if (userCarts.has(userId)) {
+        userCarts.set(userId, []); // Clear the cart by setting an empty array
+    }
+    res.json({ success: true, message: 'Cart cleared successfully' });
 });
 
 // Start the server

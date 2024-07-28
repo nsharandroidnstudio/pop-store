@@ -2,11 +2,19 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCheckoutItems();
 
     const paymentForm = document.getElementById('paymentForm');
+    const submitButton = paymentForm.querySelector('button[type="submit"]');
+
     paymentForm.addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent default form submission
 
         // Get checkout items from local storage
         const checkoutItems = JSON.parse(localStorage.getItem('checkoutItems') || '[]');
+
+        // Check if cart is empty
+        if (checkoutItems.length === 0) {
+            alert('Your cart is empty. Please add items before attempting to purchase.');
+            return;
+        }
 
         // Fetch authenticated user details
         fetch('/api/check', {
@@ -21,27 +29,24 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             // Send purchase data to server
-            fetch('/api/purchase', {
+            return fetch('/api/purchase', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ username: data.username, purchase: checkoutItems })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                alert('Purchase successful');
-                clearCart(); // Assume you have a function to clear the cart
-            })
-            .catch(error => {
-                alert('Purchase failed, please login again.');
             });
         })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            alert('Purchase successful');
+            clearCart();
+        })
         .catch(error => {
-            alert('Authentication failed: ' + error.message);
+            alert('Purchase failed: ' + error.message);
         });
     });
 });
@@ -50,14 +55,23 @@ function loadCheckoutItems() {
     const orderItemsDiv = document.getElementById('orderItems');
     const totalPriceDiv = document.getElementById('totalPrice');
     const checkoutItems = JSON.parse(localStorage.getItem('checkoutItems') || '[]');
+    const submitButton = document.querySelector('#paymentForm button[type="submit"]');
 
     let total = 0;
     const consolidatedItems = {};
 
     if (checkoutItems.length === 0) {
-        orderItemsDiv.innerHTML = '<tr><td colspan="4" style="text-align: center;">Your order is empty.</td></tr>';
+        orderItemsDiv.innerHTML = '<tr><td colspan="4" style="text-align: center;">Your cart is empty,you must add products.</td></tr>';
+        totalPriceDiv.textContent = '$0.00';
+        submitButton.disabled = true;
         return;
     }
+
+    // Enable submit button if cart is not empty
+    submitButton.disabled = false;
+
+    // Clear existing content
+    orderItemsDiv.innerHTML = '';
 
     // Consolidate items
     checkoutItems.forEach(item => {
@@ -92,6 +106,5 @@ function loadCheckoutItems() {
 
 function clearCart() {
     localStorage.removeItem('checkoutItems');
-    document.getElementById('orderItems').innerHTML = '<tr><td colspan="4" style="text-align: center;">Your order is empty.</td></tr>';
-    document.getElementById('totalPrice').textContent = '$0.00';
+    loadCheckoutItems(); // This will update the UI to show an empty cart
 }
