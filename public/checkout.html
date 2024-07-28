@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" href="/images/logo.png" type="image/png"> <!-- Add this line for the favicon -->
-
+    <link rel="icon" href="/images/logo.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout</title>
@@ -16,7 +15,14 @@
             --border-color: #bdc3c7;
         }
 
+
         body {
+
+
+            
+
+
+
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
@@ -133,10 +139,19 @@
     </style>
 </head>
 <body>
+    <div class="nav">
+        <a href="/index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="/store"><i class="fas fa-store"></i> Store</a>
+        <a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a>
+        <!-- Add other navigation links here -->
+    </div>
+
+
+
     <div class="container">
-        <h1><i class="fas fa-shopping-cart icon"></i>Checkout</h1>
+        <h1><i class="fas fa-shopping-cart icon"></i> Checkout</h1>
         <div class="order-summary">
-            <h2><i class="fas fa-list-alt icon"></i>Order Summary</h2>
+            <h2><i class="fas fa-list-alt icon"></i> Order Summary</h2>
             <table>
                 <thead>
                     <tr>
@@ -158,33 +173,86 @@
             </table>
         </div>
         <div class="payment-info">
-            <h2><i class="fas fa-credit-card icon"></i>Payment Information</h2>
+            <h2><i class="fas fa-credit-card icon"></i> Payment Information</h2>
             <form id="paymentForm">
                 <div class="form-group">
-                    <label for="cardNumber"><i class="far fa-credit-card icon"></i>Card Number</label>
+                    <label for="cardNumber"><i class="far fa-credit-card icon"></i> Card Number</label>
                     <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" required>
                 </div>
                 <div class="form-group">
-                    <label for="cardExpiry"><i class="far fa-calendar-alt icon"></i>Expiry Date</label>
+                    <label for="cardExpiry"><i class="far fa-calendar-alt icon"></i> Expiry Date</label>
                     <input type="text" id="cardExpiry" name="cardExpiry" placeholder="MM/YY" required>
                 </div>
                 <div class="form-group">
-                    <label for="cardCVC"><i class="fas fa-lock icon"></i>CVC</label>
+                    <label for="cardCVC"><i class="fas fa-lock icon"></i> CVC</label>
                     <input type="text" id="cardCVC" name="cardCVC" placeholder="123" required>
                 </div>
-                <button type="submit"><i class="fas fa-lock icon"></i>Pay Now</button>
+                <button type="submit"><i class="fas fa-lock icon"></i> Pay Now</button>
             </form>
         </div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             loadCheckoutItems();
+
+            const paymentForm = document.getElementById('paymentForm');
+            paymentForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                console.log('Form submitted'); // Log form submission
+
+                // Get checkout items from local storage
+                const checkoutItems = JSON.parse(localStorage.getItem('checkoutItems') || '[]');
+                console.log('Checkout items:', checkoutItems); // Debugging
+
+                // Fetch authenticated user details
+                fetch('/api/check', {
+                    method: 'GET',
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Please login again.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Authenticated user:', data.username);
+
+                    // Send purchase data to server
+                    fetch('/api/purchase', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username: data.username, purchase: checkoutItems })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Response data:', data); // Debugging
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        alert('Purchase successful');
+                        clearCart(); // Assume you have a function to clear the cart
+                    })
+                    .catch(error => {
+                        console.error('Error during purchase:', error); // Debugging
+                        alert('Purchase failed, please login again. ' );
+                    });
+                })
+                .catch(error => {
+                    console.error('Error checking authentication:', error);
+                    alert('Authentication failed: ' + error.message);
+                });
+            });
         });
 
         function loadCheckoutItems() {
             const orderItemsDiv = document.getElementById('orderItems');
             const totalPriceDiv = document.getElementById('totalPrice');
             const checkoutItems = JSON.parse(localStorage.getItem('checkoutItems') || '[]');
+            console.log('Loading checkout items:', checkoutItems); // Debugging
 
             let total = 0;
             const consolidatedItems = {};
@@ -223,6 +291,12 @@
             });
 
             totalPriceDiv.textContent = `$${total.toFixed(2)}`;
+        }
+
+        function clearCart() {
+            localStorage.removeItem('checkoutItems');
+            document.getElementById('orderItems').innerHTML = '<tr><td colspan="4" style="text-align: center;">Your order is empty.</td></tr>';
+            document.getElementById('totalPrice').textContent = '$0.00';
         }
     </script>
 </body>

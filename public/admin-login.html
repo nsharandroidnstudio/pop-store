@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Admin Login</title>
     <!-- Add Font Awesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -126,7 +127,7 @@
         <a href="login.html"><i class="fa fa-sign-in-alt"></i> Login</a>
     </nav>
     <div class="container">
-        <h1>Login</h1>
+        <h1>Admin Login</h1>
         <form id="loginForm">
             <div class="input-group">
                 <label for="username">Username:</label>
@@ -140,15 +141,36 @@
                 <input type="password" id="password" name="password" required>
             </div>
             
-            <div class="input-group">
-                <input type="checkbox" id="rememberMe" name="rememberMe">
-                <label for="rememberMe">Remember Me</label>
-            </div>
-            
             <button type="submit">Login</button>
         </form>
         <div id="message"></div>
     </div>
-    <script src="/js/login.js"></script>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    console.log('Login successful');
+                    // Redirect or perform actions on successful login
+                } else {
+                    console.error('Login failed: Invalid username or password');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
 </body>
 </html>

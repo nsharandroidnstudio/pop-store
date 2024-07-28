@@ -1,15 +1,15 @@
-// This file (persist.js) is responsible for handling data persistence operations related to users and products. It ensures that directories and files exist, and provides functions to save, retrieve, and delete user and product data from products.json and users.json files.
 // File: persist.js
 
 // Import necessary modules
 const fs = require('fs').promises; // File system promises API for async operations
 const path = require('path'); // Module for handling file paths
-const Product = require('./models/Product'); // Import Product model for MongoDB operations
 
 // Define paths for data storage
 const DATA_DIR = path.join(__dirname, 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
+const ADMIN_FILE_PATH = path.join(DATA_DIR, 'admin.json');
+const PURCHASES_FILE = path.join(DATA_DIR, 'users_purchase.json');
 
 // Ensure that a directory exists; create it if it does not
 async function ensureDirectoryExists(directory) {
@@ -157,5 +157,80 @@ async function removeProduct(title) {
     return products.length !== updatedProducts.length; // Return true if a product was removed
 }
 
+// Admin-related functions
+
+// Helper function to read admins from the file
+async function readAdmins() {
+    try {
+        const data = await fs.readFile(ADMIN_FILE_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return []; // If file doesn't exist, return an empty array
+        }
+        throw error;
+    }
+}
+
+// Helper function to write admins to the file
+async function writeAdmins(admins) {
+    try {
+        await fs.writeFile(ADMIN_FILE_PATH, JSON.stringify(admins, null, 2));
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Save an admin
+async function saveAdmin(username, hashedPassword) {
+    const admins = await readAdmins();
+    admins.push({ username, password: hashedPassword });
+    await writeAdmins(admins);
+}
+
+// Check if an admin exists
+async function adminExists(username) {
+    const admins = await readAdmins();
+    return admins.some(admin => admin.username === username);
+}
+
+// Get an admin by username
+async function getAdminByUsername(username) {
+    const admins = await readAdmins();
+    return admins.find(admin => admin.username === username) || null;
+}
+
+
+async function savePurchase(username, purchase) {
+    await ensureDirectoryExists(DATA_DIR);
+    await ensureFileExists(PURCHASES_FILE);
+
+    let purchases = [];
+    try {
+        const data = await fs.readFile(PURCHASES_FILE, 'utf8');
+        purchases = JSON.parse(data); // Parse existing purchases
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            throw error;
+        }
+    }
+
+    // Add new purchase
+    purchases.push({ username, purchase });
+    await fs.writeFile(PURCHASES_FILE, JSON.stringify(purchases, null, 2)); // Save updated purchases list
+}
+
+
+
 // Export functions for use in other modules
-module.exports = { saveUser, userExists, getUserByUsername, saveProduct, getProducts, removeProduct };
+module.exports = {
+    saveUser,
+    userExists,
+    getUserByUsername,
+    saveProduct,
+    getProducts,
+    removeProduct,
+    saveAdmin,
+    adminExists,
+    getAdminByUsername,savePurchase
+};

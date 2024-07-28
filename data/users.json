@@ -8,15 +8,15 @@
     "password": "$2b$10$RtU87yMvzvu1TWkvxC3asummY4fpeH3Bqw.NBE1oKGJpwT6.Eecwy"
   },
   {
-    "username": "r",
-    "password": "$2b$10$8taECs6QUIhaLddaemEwFuoO59y7FU8HJO13yJxzJW258lYC9f6sS"
-  },
-  {
     "username": "p",
     "password": "$2b$10$dPLdxa8YY1h/riZOHu59y.cPsWqve8o.6d81R.5/I3GzurFtLgYNO"
   },
   {
-    "username": "n",
-    "password": "$2b$10$euvTfckBm8sMv3SowOsqKutNr8iMYR8ZEWCxKwnhQZzUVCXBRBRgq"
+    "username": "r",
+    "password": "$2b$10$sTR1jh0BUFirhNHdE0cMTOKHlEfxHnSkQ12k2Qc5M8b5Mh4etgdky"
+  },
+  {
+    "username": "t",
+    "password": "$2b$10$IpurWdIb5UrGn7vinJPjLuIuQoSuU4raMx9rdFbA1o3wXa9nKTs0a"
   }
 ]

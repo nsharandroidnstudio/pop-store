@@ -110,6 +110,16 @@
         <div id="removeMessage" class="message-container"></div>
     </form>
 
+    <h2>Add Admin</h2>
+    <form id="addAdminForm">
+        <input type="text" id="adminUsername" name="adminUsername" placeholder="Admin Username" required>
+        <input type="password" id="adminPassword" name="adminPassword" placeholder="Admin Password" required>
+        <button type="submit">
+            <i class="fa fa-user-plus icon"></i> Add Admin
+        </button>
+        <div id="adminMessage" class="message-container"></div>
+    </form>
+
     <script>
         document.getElementById('addProductForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -123,11 +133,7 @@
                 });
 
                 const data = await response.json();
-                if (response.ok) {
-                    showMessage('addMessage', data.message, 'success');
-                } else {
-                    showMessage('addMessage', data.error || 'An error occurred while adding the product.', 'error');
-                }
+                showMessage('addMessage', data.message, 'success');
             } catch (error) {
                 console.error('Error:', error);
                 showMessage('addMessage', 'An error occurred while adding the product.', 'error');
@@ -144,14 +150,32 @@
                 });
 
                 const data = await response.json();
-                if (response.ok) {
-                    showMessage('removeMessage', data.message, 'success');
-                } else {
-                    showMessage('removeMessage', data.error || 'An error occurred while removing the product.', 'error');
-                }
+                showMessage('removeMessage', data.message, 'success');
             } catch (error) {
                 console.error('Error:', error);
                 showMessage('removeMessage', 'An error occurred while removing the product.', 'error');
+            }
+        });
+
+        document.getElementById('addAdminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+
+            try {
+                const response = await fetch('/api/admin/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const data = await response.json();
+                showMessage('adminMessage', data.message, 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('adminMessage', 'An error occurred while adding the admin.', 'error');
             }
         });
 

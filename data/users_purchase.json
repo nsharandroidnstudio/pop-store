@@ -1,0 +1,67 @@
+[
+  {
+    "username": "d",
+    "purchase": [
+      {
+        "title": "Iron Man",
+        "description": "Marvel character ",
+        "price": "7",
+        "image": "1721566278898.jpg"
+      },
+      {
+        "title": "Harley Quinn",
+        "description": "Dc character",
+        "price": "10",
+        "image": "1721647168953.jpg"
+      }
+    ]
+  },
+  {
+    "username": "p",
+    "purchase": [
+      {
+        "title": "Harley Quinn",
+        "description": "Dc character",
+        "price": "10",
+        "image": "1721647168953.jpg"
+      }
+    ]
+  },
+  {
+    "username": "p",
+    "purchase": [
+      {
+        "title": "Iron Man",
+        "description": "Marvel character ",
+        "price": "7",
+        "image": "1721566278898.jpg"
+      }
+    ]
+  },
+  {
+    "username": "d",
+    "purchase": [
+      {
+        "title": "Harley Quinn",
+        "description": "Dc character",
+        "price": "10",
+        "image": "1721647168953.jpg"
+      }
+    ]
+  },
+  {
+    "username": "d",
+    "purchase": [
+      {
+        "title": "Harley Quinn",
+        "description": "Dc character",
+        "price": "10",
+        "image": "1721647168953.jpg"
+      }
+    ]
+  },
+  {
+    "username": "d",
+    "purchase": []
+  }
+]

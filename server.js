@@ -78,20 +78,6 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// Load products from products.json
-async function loadProducts() {
-    try {
-        const filePath = path.join(__dirname, 'data', 'products.json');
-        console.log('Attempting to read file:', filePath);
-        const data = await fs.readFile(filePath, 'utf8');
-        const products = JSON.parse(data);
-        console.log('Products loaded successfully from file:', products.length);
-        return products;
-    } catch (error) {
-        console.error('Error loading products from file:', error);
-        return [];
-    }
-}
 
 // Search products
 app.get('/api/products/search', async (req, res) => {
@@ -161,6 +147,10 @@ app.delete('/api/cart/delete', verifyToken, (req, res) => {
         res.status(404).json({ error: 'Product not found in cart' });
     }
 });
+
+
+const purchasesRouter = require('./routes/purchases');
+app.use('/api/purchase', purchasesRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
