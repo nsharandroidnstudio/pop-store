@@ -100,7 +100,7 @@ async function getUserByUsername(username) {
 
 // Product-related functions
 
-// Save a new product to both MongoDB and products.json
+// Save a new product to products.json
 async function saveProduct(title, description, price, image) {
     await ensureDirectoryExists(DATA_DIR);
     await ensureFileExists(PRODUCTS_FILE);
@@ -136,7 +136,7 @@ async function getProducts() {
     }
 }
 
-// Remove a product by title from both MongoDB and products.json
+// Remove a product by title from products.json
 async function removeProduct(title) {
     await ensureDirectoryExists(DATA_DIR);
     await ensureFileExists(PRODUCTS_FILE);
@@ -219,7 +219,6 @@ async function savePurchase(username, purchase) {
     purchases.push({ username, purchase });
     await fs.writeFile(PURCHASES_FILE, JSON.stringify(purchases, null, 2)); // Save updated purchases list
 }
-
 
 
 // Export functions for use in other modules

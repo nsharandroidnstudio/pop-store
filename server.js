@@ -4,26 +4,14 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const multer = require('multer');
 const fs = require('fs').promises;
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
-const Product = require('./models/Product');
 const { getProducts} = require('./persist');
 const app = express();
 const verifyToken = require('./middleware/auth');
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
-
-// Middleware
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
-}));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -77,7 +65,6 @@ app.get('/api/products', async (req, res) => {
         res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
-
 
 // Search products
 app.get('/api/products/search', async (req, res) => {
@@ -156,7 +143,6 @@ app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     res.status(500).json({ error: 'Something broke!', details: err.message });
 });
-
 
 
 app.post('/api/cart/clear', verifyToken, (req, res) => {
