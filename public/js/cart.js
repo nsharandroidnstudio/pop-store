@@ -151,3 +151,35 @@ function checkout() {
         window.location.href = '/checkout.html';
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutLink = document.getElementById('logout');
+
+    logoutLink.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove token from localStorage
+                localStorage.removeItem('token');
+                
+                // Redirect to login page
+                window.location.href = 'login.html';
+                alert('You are loged out');
+
+            } else {
+                alert('Logout failed: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Logout error:', error);
+            alert('Logout failed: ' + error.message);
+        });
+    });
+});
+

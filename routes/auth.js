@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { saveUser, userExists, getUserByUsername, saveAdmin, adminExists, getAdminByUsername } = require('../persist');
 const verifyToken = require('../middleware/authMiddleware');
+const verifyAdminToken = require('../middleware/adminAuthMiddleware');
 
 // User registration route
 router.post('/register', async (req, res) => {
@@ -112,7 +113,7 @@ router.post('/admin/add', async (req, res) => {
 // Admin login route
 router.post('/admin/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, rememberMe } = req.body;
 
         if (!username || !password) {
             return res.status(400).json({ error: 'Username and password are required' });
@@ -129,14 +130,14 @@ router.post('/admin/login', async (req, res) => {
         }
 
         const token = jwt.sign({ username: admin.username, isAdmin: true }, process.env.JWT_SECRET, {
-            expiresIn: '1h'
+            expiresIn: rememberMe ? '10d' : '1h'
         });
 
         res.cookie('adminToken', token, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
-            maxAge: 60 * 60 * 1000, // 1 hour
+            maxAge: rememberMe ? 10 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 10 days or 1 hour
         });
 
         console.log(`Admin logged in: ${username}`);
@@ -145,6 +146,11 @@ router.post('/admin/login', async (req, res) => {
         console.error('Admin login error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
+});
+
+// Protect the admin dashboard route
+router.get('/admin/dashboard', verifyAdminToken, (req, res) => {
+    res.sendFile('public\admin-dashboard.html'); 
 });
 
 module.exports = router;

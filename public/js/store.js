@@ -95,31 +95,48 @@ function checkAuthAndAddToCart(title) {
     });
 }
 
-function addToCart(title) {
-    fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title: title }),
-        credentials: 'include' // Ensure cookies are included in the request
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => Promise.reject(err));
+async function addToCart(productTitle, username) {
+    try {
+        console.log("hey");
+        console.log(username);
+
+        const response = await fetch('/api/cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: productTitle,username:username })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('Product added to cart successfully');
+            // await logActivity(username, `add-to-cart:"${productTitle}"`);
+        } else {
+            console.error('Failed to add product to cart:', result.error);
         }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Product added to cart:', data);
-        alert('Product added to cart successfully');
-        // Update cart display or count here
-    })
-    .catch(error => {
-        console.error('Error adding to cart:', error);
-        alert('Failed to add product to cart');
-    });
+    } catch (error) {
+        console.error('Error adding product to cart:', error);
+    }
 }
+
+
+
+// function verifyToken(req) {
+//     const token = req.cookies.token;
+//     if (!token) {
+//       throw new Error('No token provided');
+//     }
+  
+//     const decoded = jwt.verify(token,process.env.JWT_SECRET ); 
+//     return decoded.username;
+//   }
+
+
+
+
+
+
+
 
 function checkAuthAndRedirectToCart() {
     fetch('/api/check', {
@@ -149,3 +166,56 @@ function checkAuthAndRedirectToCart() {
         window.location.href = 'login.html';
     });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutLink = document.getElementById('logout');
+
+    logoutLink.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove token from localStorage
+                localStorage.removeItem('token');
+                
+                // Redirect to login page
+                window.location.href = 'login.html';
+                alert('You are loged out');
+
+            } else {
+                alert('Logout failed: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Logout error:', error);
+            alert('Logout failed: ' + error.message);
+        });
+    });
+});
+
+
+async function logActivity(username, activity) {
+    try {
+        const response = await fetch('/api/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, activity })
+        });
+        const result = await response.json();
+        if (!result.success) {
+            console.error('Failed to log activity:', result.error);
+        }
+    } catch (error) {
+        console.error('Error logging activity:', error);
+    }
+}
+
+
+

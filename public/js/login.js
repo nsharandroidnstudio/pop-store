@@ -13,16 +13,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ username, password, rememberMe }),
-            credentials: 'include' // This is important for including cookies
+            credentials: 'include'
         })
         .then(response => response.json())
         .then(data => {
             if (data.token) {
-                // Store token in localStorage
                 localStorage.setItem('token', data.token);
                 document.cookie = `token=${data.token}; path=/; max-age=${rememberMe ? 864000 : 1800}; SameSite=Strict`;
 
-                // Clear user's cart after login
+                // Log the login activity
+                logActivity(username, 'login');
+
                 fetch('/api/cart/clear', {
                     method: 'POST',
                     headers: {
@@ -35,14 +36,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(cartData => {
                     if (cartData.success) {
                         alert('Login successful!');
-                        window.location.href = 'store.html'; // Redirect to store page
+                        window.location.href = 'store.html';
                     } else {
-                        alert('Login successful');
+                        alert('Login successful, but failed to clear cart');
                     }
                 })
                 .catch(cartError => {
                     console.error('Error clearing cart:', cartError);
-                    alert('Login successful');
+                    alert('Login successful, but failed to clear cart');
                 });
             } else {
                 alert('Login failed: ' + (data.error || 'Unknown error'));
@@ -53,4 +54,18 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Login failed: ' + error.message);
         });
     });
+
+    function logActivity(username, activity) {
+        fetch('/api/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, activity }),
+            credentials: 'include'
+        })
+        .catch(logError => {
+            console.error('Logging error:', logError);
+        });
+    }
 });

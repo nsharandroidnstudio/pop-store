@@ -1,7 +1,10 @@
 [
-  
   {
     "username": "r",
     "password": "$2b$10$LhJokUaisd6kLgPW5jgHdeNYWIYE7JSzxdSzhRIGeEhSMYK/GscWO"
+  },
+  {
+    "username": "s",
+    "password": "$2b$10$.9QOhFLxRYwwnw9FL.Dbe.zBZtfW3vVKvp9Cms8CC7Xez4sSsXrKS"
   }
 ]

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" href="/images/logo.png" type="image/png"> <!-- Add this line for the favicon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <!-- Font Awesome for icons -->
+    <link rel="icon" href="/images/logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,6 +84,26 @@
         .icon {
             font-size: 1.2em;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #007bff;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
     </style>
 </head>
 <body>
@@ -120,78 +140,26 @@
         <div id="adminMessage" class="message-container"></div>
     </form>
 
-    <script>
-        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+    <h2>User Activity</h2>
+    <form id="userActivityForm">
+        <input type="text" id="usernameFilter" name="usernameFilter" placeholder="Filter by username prefix">
+        <button type="button" id="filterButton">
+            <i class="fa fa-filter icon"></i> Filter
+        </button>
+    </form>
+    <table id="activityTable">
+        <thead>
+            <tr>
+                <th>Date/Time</th>
+                <th>Username</th>
+                <th>Activity</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Activity rows will be dynamically inserted here -->
+        </tbody>
+    </table>
 
-            const formData = new FormData(document.getElementById('addProductForm'));
-
-            try {
-                const response = await fetch('/admin/products', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                const data = await response.json();
-                showMessage('addMessage', data.message, 'success');
-            } catch (error) {
-                console.error('Error:', error);
-                showMessage('addMessage', 'An error occurred while adding the product.', 'error');
-            }
-        });
-
-        document.getElementById('removeProductForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const titleToRemove = document.getElementById('titleToRemove').value;
-
-            try {
-                const response = await fetch(`/admin/products?title=${encodeURIComponent(titleToRemove)}`, {
-                    method: 'DELETE',
-                });
-
-                const data = await response.json();
-                showMessage('removeMessage', data.message, 'success');
-            } catch (error) {
-                console.error('Error:', error);
-                showMessage('removeMessage', 'An error occurred while removing the product.', 'error');
-            }
-        });
-
-        document.getElementById('addAdminForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('adminUsername').value;
-            const password = document.getElementById('adminPassword').value;
-
-            try {
-                const response = await fetch('/api/admin/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password }),
-                });
-
-                const data = await response.json();
-                showMessage('adminMessage', data.message, 'success');
-            } catch (error) {
-                console.error('Error:', error);
-                showMessage('adminMessage', 'An error occurred while adding the admin.', 'error');
-            }
-        });
-
-        function showMessage(containerId, message, type) {
-            const container = document.getElementById(containerId);
-            const alert = document.createElement('div');
-            alert.className = `alert ${type}`;
-            alert.textContent = message;
-            container.innerHTML = '';
-            container.appendChild(alert);
-
-            // Automatically remove the alert after 5 seconds
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
-        }
-    </script>
+    <script src="./js/admin-dashboard.js" defer></script>
 </body>
 </html>

@@ -10,6 +10,7 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const ADMIN_FILE_PATH = path.join(DATA_DIR, 'admin.json');
 const PURCHASES_FILE = path.join(DATA_DIR, 'users_purchase.json');
+const LOGS_FILE =  path.join(DATA_DIR, 'user_logs.json');
 
 // Ensure that a directory exists; create it if it does not
 async function ensureDirectoryExists(directory) {
@@ -114,11 +115,12 @@ async function saveProduct(title, description, price, image) {
             throw error;
         }
     }
-
-    // Convert price to number and add new product
+    console.log(title)
+    // Add new product with correct structure
     products.push({ title, description, price: Number(price), image });
     await fs.writeFile(PRODUCTS_FILE, JSON.stringify(products, null, 2)); // Save updated products list
 }
+
 
 // Get all products from the products.json file
 async function getProducts() {
@@ -221,6 +223,43 @@ async function savePurchase(username, purchase) {
 }
 
 
+// Save a log entry
+async function saveLog(username, activity) {
+    await ensureDirectoryExists(DATA_DIR);
+    await ensureFileExists(LOGS_FILE);
+
+    let logs = [];
+    try {
+        const data = await fs.readFile(LOGS_FILE, 'utf8');
+        logs = JSON.parse(data); // Parse existing logs
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            throw error;
+        }
+    }
+
+    // Add new log entry with current date and time
+    const datetime = new Date().toISOString();
+    logs.push({ datetime, username, activity });
+    await fs.writeFile(LOGS_FILE, JSON.stringify(logs, null, 2)); // Save updated logs
+}
+
+// Get all logs from the logs.json file
+async function getLogs() {
+    await ensureDirectoryExists(DATA_DIR);
+    await ensureFileExists(LOGS_FILE);
+
+    try {
+        const data = await fs.readFile(LOGS_FILE, 'utf8');
+        return JSON.parse(data); // Return logs list
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return []; // Return empty array if file does not exist
+        }
+        throw error;
+    }
+}
+
 // Export functions for use in other modules
 module.exports = {
     saveUser,
@@ -231,5 +270,8 @@ module.exports = {
     removeProduct,
     saveAdmin,
     adminExists,
-    getAdminByUsername,savePurchase
+    getAdminByUsername,
+    savePurchase,
+    saveLog,
+    getLogs
 };
