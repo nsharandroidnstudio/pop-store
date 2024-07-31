@@ -7,7 +7,7 @@ const multer = require('multer');
 const fs = require('fs').promises;
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
-const { removeProduct,saveProduct, getProducts, saveLog, getLogs } = require('./persist');
+const { getPurchases ,removeProduct,saveProduct, getProducts, saveLog, getLogs } = require('./persist');
 const app = express();
 const verifyToken = require('./middleware/authMiddleware');
 const verifyAdminToken = require('./middleware/adminAuthMiddleware');
@@ -253,6 +253,22 @@ app.delete('/admin/products', verifyAdminToken, async (req, res) => {
         res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
+
+
+
+
+app.get('/api/admin/purchases', verifyAdminToken, async (req, res) => {
+    try {
+        const purchases = await getPurchases();
+        res.json(purchases);
+    } catch (error) {
+        console.error('Error fetching purchases:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
 
 
 // Start the server

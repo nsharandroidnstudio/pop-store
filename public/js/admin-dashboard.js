@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Verify admin token
     try {
-        console.log('Verifying token:', token);
         const response = await fetch('/api/admin/verify', {
             method: 'GET',
             headers: {
@@ -32,17 +31,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('Verification response data:', data);
             if (!data.success) {
                 throw new Error('Verification failed.');
             }
         } else {
-            console.error('Token verification failed with status:', response.status);
             throw new Error('Invalid token or server error.');
         }
     } catch (error) {
-        alert("You must login.");
-        console.error('Error during token verification:', error);
         addMessageElement.textContent = 'Error: ' + error.message;
         addMessageElement.className = 'alert error';
         setTimeout(() => {
@@ -167,7 +162,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     throw new Error('Logout failed.');
                 }
             } catch (error) {
-                console.error('Error during logout:', error);
                 alert('Error during logout: ' + error.message);
             }
         });
@@ -212,4 +206,53 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initial fetch of logs
     fetchAndDisplayLogs();
+
+const purchasesTableBody = document.querySelector('#purchasesTable tbody');
+async function fetchAndDisplayPurchases() {
+    try {
+        const response = await fetch('/api/admin/purchases', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const purchases = await response.json();
+            displayPurchases(purchases);
+        } else {
+            console.error('Failed to fetch purchases');
+        }
+    } catch (error) {
+        console.error('Error fetching purchases:', error);
+    }
+}
+function displayPurchases(purchases) {
+    purchasesTableBody.innerHTML = ''; // Clear existing rows
+    purchases.forEach(purchaseEntry => {
+        purchaseEntry.purchase.forEach(item => {
+            const row = purchasesTableBody.insertRow();
+            row.insertCell(0).textContent = new Date(purchaseEntry.datetime || Date.now()).toLocaleString();
+            row.insertCell(1).textContent = purchaseEntry.username;
+            row.insertCell(2).textContent = item.title;
+            row.insertCell(3).textContent = item.description;
+            row.insertCell(4).textContent = `$${parseFloat(item.price).toFixed(2)}`;
+            
+            const imageCell = row.insertCell(5);
+            if (item.image) {
+                const img = document.createElement('img');
+                img.src = `/images/${item.image}`;
+                img.alt = item.title;
+                img.style.width = '50px';
+                imageCell.appendChild(img);
+            } else {
+                imageCell.textContent = 'No image';
+            }
+        });
+    });
+}
+
+
+// Initial fetch of purchases
+fetchAndDisplayPurchases();
+
 });

@@ -223,8 +223,12 @@ async function savePurchase(username, purchase) {
         }
     }
 
-    // Add new purchase
-    purchases.push({ username, purchase });
+    // Add new purchase with timestamp
+    purchases.push({
+        username,
+        purchase,
+        datetime: new Date().toISOString()
+    });
     await fs.writeFile(PURCHASES_FILE, JSON.stringify(purchases, null, 2)); // Save updated purchases list
 }
 
@@ -266,6 +270,32 @@ async function getLogs() {
     }
 }
 
+
+
+
+async function getPurchases() {
+    await ensureDirectoryExists(DATA_DIR);
+    await ensureFileExists(PURCHASES_FILE);
+
+    try {
+        const data = await fs.readFile(PURCHASES_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return []; // Return empty array if file does not exist
+        }
+        throw error;
+    }
+}
+
+
+
+
+
+
+
+
+
 // Export functions for use in other modules
 module.exports = {
     saveUser,
@@ -279,5 +309,6 @@ module.exports = {
     getAdminByUsername,
     savePurchase,
     saveLog,
-    getLogs
+    getLogs,
+    getPurchases
 };
