@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             alert('Purchase successful');
             clearCart();
+            window.location.href = 'thank-you.html';
+
+
         })
         .catch(error => {
             alert('Purchase failed: ' + error.message);

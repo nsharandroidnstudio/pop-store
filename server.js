@@ -7,11 +7,10 @@ const multer = require('multer');
 const fs = require('fs').promises;
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
-const { saveProduct, getProducts, saveLog, getLogs } = require('./persist');
+const { removeProduct,saveProduct, getProducts, saveLog, getLogs } = require('./persist');
 const app = express();
 const verifyToken = require('./middleware/authMiddleware');
 const verifyAdminToken = require('./middleware/adminAuthMiddleware');
-
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -52,6 +51,22 @@ app.post('/api/logout', verifyToken,async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+
+
+app.post('/api/admin/logout', verifyAdminToken, async (req, res) => {
+    try {
+        const adminId = req.adminUsername;
+        await saveLog(adminId, 'admin-logout');
+
+        res.clearCookie('adminToken'); // Clear the admin token cookie
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
 // Logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
@@ -203,10 +218,6 @@ app.get('/api/admin/logs', verifyAdminToken, async (req, res) => {
     }
 });
 
-
-
-
-
 // Admin routes
 app.post('/admin/products', upload.single('image'), async (req, res) => {
     const { title, description, price } = req.body;
@@ -235,22 +246,13 @@ app.delete('/admin/products', verifyAdminToken, async (req, res) => {
         await removeProduct(title);
         res.json({ success: true, message: 'Product removed successfully' });
     } catch (error) {
+        if (error.message === 'Product not found') {
+            return res.status(404).json({ error: 'Product not found' });
+        }
         console.error('Error removing product:', error);
         res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // Start the server

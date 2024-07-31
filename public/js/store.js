@@ -32,7 +32,6 @@ function displayProducts(products) {
 
         // Convert price to number if it is a string
         const price = !isNaN(product.price) ? parseFloat(product.price).toFixed(2) : 'N/A';
-        console.log('Product price:', price); // Log the product price
 
         productDiv.innerHTML = `
             <img src="/images/${product.image}" alt="${product.title}">
@@ -97,8 +96,6 @@ function checkAuthAndAddToCart(title) {
 
 async function addToCart(productTitle, username) {
     try {
-        console.log("hey");
-        console.log(username);
 
         const response = await fetch('/api/cart', {
             method: 'POST',

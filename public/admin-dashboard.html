@@ -16,6 +16,26 @@
             background-color: #f0f4f8;
             color: #333;
         }
+        nav {
+            width: 100%;
+            background-color: #007bff;
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
+            font-size: 1.2em;
+            transition: color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        nav a:hover {
+            color: #ffcc00;
+        }
         h1, h2 {
             color: #007bff;
             border-bottom: 2px solid #007bff;
@@ -107,6 +127,13 @@
     </style>
 </head>
 <body>
+    <nav>
+        <a href="index.html"><i class="fa fa-home"></i> Home</a>
+        <a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</a>
+        <a href="login.html"><i class="fa fa-sign-in-alt"></i> Login</a>
+        <a href="#" id="logoutLink"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </nav>
+
     <h1>Manage Products</h1>
 
     <h2>Add Product</h2>

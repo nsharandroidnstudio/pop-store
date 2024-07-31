@@ -153,14 +153,20 @@ async function removeProduct(title) {
         }
     }
 
+    const initialLength = products.length;
+
     // Filter out the product to be removed
     const updatedProducts = products.filter(product => product.title !== title);
+    
+    if (initialLength === updatedProducts.length) {
+        throw new Error('Product not found');
+    }
+
     await fs.writeFile(PRODUCTS_FILE, JSON.stringify(updatedProducts, null, 2)); // Save updated products list
-    return products.length !== updatedProducts.length; // Return true if a product was removed
+    return true;
 }
 
 // Admin-related functions
-
 // Helper function to read admins from the file
 async function readAdmins() {
     try {

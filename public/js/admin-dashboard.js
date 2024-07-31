@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addMessageElement = document.getElementById('addMessage');
     const removeMessageElement = document.getElementById('removeMessage');
     const adminMessageElement = document.getElementById('adminMessage');
+    const logoutLink = document.getElementById('logoutLink');
 
     if (!addMessageElement || !removeMessageElement || !adminMessageElement) {
         console.error('Message elements not found.');
@@ -15,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         addMessageElement.className = 'alert error';
         setTimeout(() => {
             window.location.href = 'admin-login.html';
-        }, 1);
+        }, 0);
         return;
     }
 
@@ -40,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error('Invalid token or server error.');
         }
     } catch (error) {
-        alert("You must login.")
+        alert("You must login.");
         console.error('Error during token verification:', error);
         addMessageElement.textContent = 'Error: ' + error.message;
         addMessageElement.className = 'alert error';
@@ -51,92 +52,126 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Handle Add Product form submission
-    document.getElementById('addProductForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const formData = new FormData(event.target);
+    const addProductForm = document.getElementById('addProductForm');
+    if (addProductForm) {
+        addProductForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
 
-        try {
-            const response = await fetch('/admin/products', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Authorization': `Bearer ${token}`
+            try {
+                const response = await fetch('/admin/products', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    addMessageElement.textContent = 'Product added successfully';
+                    addMessageElement.className = 'alert success';
+                    event.target.reset();
+                } else {
+                    const errorData = await response.json();
+                    addMessageElement.textContent = errorData.error || 'Failed to add product';
+                    addMessageElement.className = 'alert error';
                 }
-            });
-
-            if (response.ok) {
-                addMessageElement.textContent = 'Product added successfully';
-                addMessageElement.className = 'alert success';
-                event.target.reset();
-            } else {
-                const errorData = await response.json();
-                addMessageElement.textContent = errorData.error || 'Failed to add product';
+            } catch (error) {
+                addMessageElement.textContent = 'Error: ' + error.message;
                 addMessageElement.className = 'alert error';
             }
-        } catch (error) {
-            addMessageElement.textContent = 'Error: ' + error.message;
-            addMessageElement.className = 'alert error';
-        }
-    });
+        });
+    }
 
     // Handle Remove Product form submission
-    document.getElementById('removeProductForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const title = document.getElementById('titleToRemove').value;
+    const removeProductForm = document.getElementById('removeProductForm');
+    if (removeProductForm) {
+        removeProductForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const title = document.getElementById('titleToRemove').value;
 
-        try {
-            const response = await fetch(`/admin/products?title=${encodeURIComponent(title)}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
+            try {
+                const response = await fetch(`/admin/products?title=${encodeURIComponent(title)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    removeMessageElement.textContent = 'Product removed successfully';
+                    removeMessageElement.className = 'alert success';
+                    event.target.reset();
+                } else {
+                    const errorData = await response.json();
+                    removeMessageElement.textContent = errorData.error || 'Failed to remove product';
+                    removeMessageElement.className = 'alert error';
                 }
-            });
-
-            if (response.ok) {
-                removeMessageElement.textContent = 'Product removed successfully';
-                removeMessageElement.className = 'alert success';
-                event.target.reset();
-            } else {
-                const errorData = await response.json();
-                removeMessageElement.textContent = errorData.error || 'Failed to remove product';
+            } catch (error) {
+                removeMessageElement.textContent = 'Error: ' + error.message;
                 removeMessageElement.className = 'alert error';
             }
-        } catch (error) {
-            removeMessageElement.textContent = 'Error: ' + error.message;
-            removeMessageElement.className = 'alert error';
-        }
-    });
+        });
+    }
 
     // Handle Add Admin form submission
-    document.getElementById('addAdminForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const username = document.getElementById('adminUsername').value;
-        const password = document.getElementById('adminPassword').value;
+    const addAdminForm = document.getElementById('addAdminForm');
+    if (addAdminForm) {
+        addAdminForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
 
-        try {
-            const response = await fetch('/api/admin/add-admin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ username, password })
-            });
+            try {
+                const response = await fetch('/api/admin/add-admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ username, password })
+                });
 
-            if (response.ok) {
-                adminMessageElement.textContent = 'Admin added successfully';
-                adminMessageElement.className = 'alert success';
-                event.target.reset();
-            } else {
-                const errorData = await response.json();
-                adminMessageElement.textContent = errorData.error || 'Failed to add admin';
+                if (response.ok) {
+                    adminMessageElement.textContent = 'Admin added successfully';
+                    adminMessageElement.className = 'alert success';
+                    event.target.reset();
+                } else {
+                    const errorData = await response.json();
+                    adminMessageElement.textContent = errorData.error || 'Failed to add admin';
+                    adminMessageElement.className = 'alert error';
+                }
+            } catch (error) {
+                adminMessageElement.textContent = 'Error: ' + error.message;
                 adminMessageElement.className = 'alert error';
             }
-        } catch (error) {
-            adminMessageElement.textContent = 'Error: ' + error.message;
-            adminMessageElement.className = 'alert error';
-        }
-    });
+        });
+    }
+
+    // Handle Logout
+    if (logoutLink) {
+        logoutLink.addEventListener('click', async (event) => {
+            event.preventDefault();
+            try {
+                const response = await fetch('/api/admin/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    localStorage.removeItem('adminToken');
+                    window.location.href = 'admin-login.html';
+                } else {
+                    throw new Error('Logout failed.');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+                alert('Error during logout: ' + error.message);
+            }
+        });
+    }
 
     // New functionality for user activity logs
     const activityTableBody = document.querySelector('#activityTable tbody');
