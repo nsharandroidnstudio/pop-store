@@ -185,12 +185,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('You are loged out');
 
             } else {
-                alert('Logout failed: ' + (data.error || 'Unknown error'));
+                alert('You need to login,in order to logout');
+                window.location.href = 'login.html';
+
             }
         })
         .catch(error => {
             console.error('Logout error:', error);
-            alert('Logout failed: ' + error.message);
+            alert('You need to login,in order to logout');
+            window.location.href = 'login.html';
+
         });
     });
 });
